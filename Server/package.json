@@ -1,0 +1,17 @@
+{
+
+  "name":"Demo01-firebase",
+  "version":"0.0.0",
+  "private": true,
+  "scripts":{
+    "start":"node server"
+  },
+  "dependencies":{
+    "express":"*",
+    "jade":"*",
+    "firebase":"*",
+    "mongoose":"*",
+    "body-parser":"*",
+    "method-override":"*"
+  }
+}
