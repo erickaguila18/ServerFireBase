@@ -6,25 +6,15 @@ var express = require('express')
 , bodyParser = require('body-parser')
 , methodOverride = require('method-override');
 
-// Agregando FireBase
+// Agregando SDK FireBase
 var firebase = require("firebase");
 
 
 // Inicializando el API
 firebase.initializeApp({
-  databaseURL: "https://demoapp-89eeb.firebaseio.com/",
-  serviceAccount: "./jsonFiles/google-services.json",
-   databaseAuthVariableOverride: {
-    uid: "my-service-worker"
-  }
+  databaseURL: "https://push-not-22e2b.firebaseio.com",
+  serviceAccount: "./jsonFiles/push-not-9f814a19423e.json"
 });
-
-
-Firebase.database().ref('/').set({
-    username: "savir",
-    email: "guevara.savir@gmail.com"
-});
-
 
 
 
@@ -38,7 +28,7 @@ var app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(methodOverride('X-HTTP-Method-Override'));
 app.use(methodOverride(function(req, res){
@@ -70,25 +60,51 @@ mongoose.connect('mongodb://localhost/notifications',function(err){
 
 
 
+var tokenURI = "token-device"; 
+app.post('/token-device',function(req , res){
+  var token = req.body.token;
+  var db = firebase.database();
+  var tokenDevices = db.ref("token-device").push();
+  tokenDevices.set({
+    token:token
+  });
+
+  var path = tokenDevices.toString();
+  var pathSplit = path.split(tokenURI+"/");
+  var idAuto = pathSplit[1];
+
+  var respuesta = generarRespuesta(db,idAuto);
+  res.setHeader("Content-Type","application/json");
+  res.send(JSON.stringify(respuesta));
+});
 
 
-/*
 
-// READ
-app.get('/allData',function(req , res){
-    Notification.find({},function(err,pub){
-        res.render('index',{
-            doc:doc
-        });
+function generarRespuesta(db,idAuto){
+    var resuesta = {};
+    var ref = db.ref("token-device");
+
+    ref.on("child-added", function(snapshot,prevChildKey){
+
+      usuario = snapshot.val();
+
+      respuesta = {
+        id: idAuto,
+        token:usuario.token
+      };
+    });
+
+    return respuesta;
+}
+
+
+app.post('/save',function(req , res){
+    var device =  new Notification({
+      contenido:req.body.notifications
+    });
+    device.save(function(err){
+      throw err;   
     });
 });
 
 
-app.post('/create',function(req , res){
-        var notification =  new Notification({
-            contenido:req.body.notification
-        });
-        notification.save(function(err){
-            console.log(err);         
-        });
-});*/
